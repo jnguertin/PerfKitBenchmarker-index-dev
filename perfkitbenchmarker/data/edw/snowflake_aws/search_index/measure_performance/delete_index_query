@@ -1,0 +1,1 @@
+SELECT 1; --no-op, this isn't needed for snowflake I think?

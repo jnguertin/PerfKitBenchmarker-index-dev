@@ -1,0 +1,1 @@
+CREATE OR REPLACE TABLE search_index_proto_large AS SELECT * FROM search_index_proto_init;
