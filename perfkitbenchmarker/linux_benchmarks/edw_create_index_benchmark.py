@@ -13,44 +13,7 @@
 # limitations under the License.
 
 """
-
-Run command:
-
-BigQuery:
-
-./pkb.py \
---cloud=GCP  \
---benchmarks=edw_create_index_benchmark \
---bq_client_interface=PYTHON  \
---config_override=edw_create_index_benchmark.edw_service.type=bigquery \
---config_override=edw_create_index_benchmark.edw_service.cluster_identifier=p3rf-bq-search.search_index_dataset \
---gcp_service_account=bigquery-testing-pkb@p3rf-bigquery-smallquery-slots.iam.gserviceaccount.com \
---gcp_service_account_key_file=/home/shuninglin/p3rf-bq-search-050c6559ed66.json \
---edw_index_creation_query_dir=edw/bigquery/search_index/CUJ1 \
---edw_power_queries=verify_no_index_query,create_index_query,delete_index_query,check_index_coverage_query \
---metadata=cloud:GCP \
---project=p3rf-bq-search \
---zones=us-central1-c 
-
-Snowflake:
-
-TODO: Add SF queries to query folder and set up SF tables.
-
-./pkb.py \
---cloud=AWS \
---benchmarks=edw_create_index_benchmark \
---snowflake_client_interface=JDBC  \
---config_override=edw_create_index_benchmark.edw_service.type=snowflake_aws \
---config_override=edw_index_benchmark.edw_service.cluster_identifier= \
---snowflake_database=SEARCH_INDEX \
---snowflake_schema=INDEX_TEST \
---snowflake_warehouse=XSMALL_TEST \
---edw_index_creation_query_dir=edw/snowflake_aws/search_index/CUJ1 \
---edw_power_queries=verify_no_index_query,create_index_query,delete_index_query,check_index_coverage_query \
---metadata=cloud:AWS \
---snowflake_jdbc_client_jar=/home/shuninglin/snowflake-jdbc-client-2.13-enterprise.jar \
---machine_type=m4.large \
---zones=us-west-2a
+TODO: Set up SF tables and queries and test if they work.
 """
 
 """Benchmark for creating an index in an EDW service."""
