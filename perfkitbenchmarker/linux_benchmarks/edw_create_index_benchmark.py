@@ -114,7 +114,7 @@ def Prepare(benchmark_spec):
   any(vm.PushDataFile(query_loc) for query_loc in query_locations)
 
 
-# Check if there's no index already created. If so, issue a command to delete the index and keep
+# Check if there's an index already created. If so, issue a command to delete the index and keep
 # checking until index is deleted or timeout
 def ensure_no_index(client_interface):
   start_time = time.time()
@@ -123,7 +123,7 @@ def ensure_no_index(client_interface):
     time_elapsed = time.time() - start_time
     if time_elapsed > timeout:
       logging.error("Timed out waiting for index to be deleted.")
-      # TODO: how to stop the benchmark
+      # TODO: find a way to stop the benchmark in case of timeout
       break
     _, metadata = client_interface.ExecuteQuery('verify_no_index_query')
     if metadata and metadata.get('rows_returned', 0) > 0:
@@ -151,8 +151,8 @@ def measure_building_time(client_interface, results):
       results.append(sample.Sample('search_index_available_time', time_elapsed, 'seconds', metadata))
       break
     if time_elapsed > timeout:
-      logging.error("Timed out waiting for index to be fully created.")
-      # TODO: how to stop the benchmark
+      logging.error("Timed out waiting for index to fully cover the table.")
+      # TODO: find a way to stop the benchmark in case of timeout
       break
     else:
       time.sleep(1) 

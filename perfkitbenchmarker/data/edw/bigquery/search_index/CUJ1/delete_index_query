@@ -1,1 +1,1 @@
-DROP SEARCH INDEX IF EXISTS prototype_CUJ1_benchmark_index ON prototype_CUJ1_benchmarking_100GB;
+DROP SEARCH INDEX IF EXISTS prototype_CUJ1_benchmark_index ON prototype_CUJ1_benchmark_100GB;
