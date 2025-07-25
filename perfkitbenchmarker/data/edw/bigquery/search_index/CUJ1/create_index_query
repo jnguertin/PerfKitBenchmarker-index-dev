@@ -1,0 +1,2 @@
+CREATE SEARCH INDEX IF NOT EXISTS prototype_CUJ1_benchmark_index
+ON prototype_CUJ1_benchmarking_100GB(ALL COLUMNS);
