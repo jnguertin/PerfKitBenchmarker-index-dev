@@ -78,7 +78,7 @@ def Prepare(benchmark_spec: bm_spec.BenchmarkSpec) -> None:
   )
   edw_service_instance.GetClientInterface().Prepare('edw_common')
 
-  query_locations = [
+  query_locations: list[str] = [
       os.path.join(FLAGS.edw_index_creation_query_dir, query)
       for query in FLAGS.edw_power_queries.split(',')
   ]
