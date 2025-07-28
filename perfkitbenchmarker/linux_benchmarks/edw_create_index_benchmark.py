@@ -22,13 +22,14 @@ import os
 import time
 import logging
 from absl import flags
+from typing import Any
 from perfkitbenchmarker import configs
-from perfkitbenchmarker import edw_service
 from perfkitbenchmarker import sample
-from perfkitbenchmarker import vm_util
+from perfkitbenchmarker import edw_service
+from perfkitbenchmarker import benchmark_spec as bm_spec
+
 
 BENCHMARK_NAME = 'edw_create_index_benchmark'
-
 BENCHMARK_CONFIG = """
 edw_create_index_benchmark:
   description: Benchmark for creating an index in an EDW service.
@@ -50,12 +51,19 @@ flags.DEFINE_string(
 FLAGS = flags.FLAGS
 
 
-def GetConfig(user_config):
-  """Loads and returns the benchmark config."""
+def GetConfig(user_config: dict[Any, Any]) -> dict[Any, Any]:
+  """Load and return benchmark config.
+
+  Args:
+    user_config: user supplied configuration (flags and config file)
+
+  Returns:
+    loaded benchmark configuration
+  """
   return configs.LoadConfig(BENCHMARK_CONFIG, user_config, BENCHMARK_NAME)
 
 
-def Prepare(benchmark_spec):
+def Prepare(benchmark_spec: bm_spec.BenchmarkSpec) -> None:
   """Prepares the client VM to run the benchmark.
 
   Args:
@@ -77,15 +85,20 @@ def Prepare(benchmark_spec):
   any(vm.PushDataFile(query_loc) for query_loc in query_locations)
 
 
-# Check if there's an index already created. If so, issue a command to delete the index and keep
-# checking until index is deleted or timeout
-def ensure_no_index(client_interface):
+def ensure_no_index(
+    client_interface: edw_service.EdwClientInterface, timeout: int = 30
+) -> None:
+  """Checks if an index already exists and deletes it if it does.
+
+  Args:
+    client_interface: The EDW client interface.
+    timeout: The maximum time(in seconds) to wait for the index to be deleted.
+  """
   start_time = time.time()
-  timeout = 30
   while True:
     time_elapsed = time.time() - start_time
     if time_elapsed > timeout:
-      logging.error("Timed out waiting for index to be deleted.")
+      logging.error('Timed out waiting for index to be deleted.')
       # TODO: find a way to stop the benchmark in case of timeout
       break
     _, metadata = client_interface.ExecuteQuery('verify_no_index_query')
@@ -93,44 +106,69 @@ def ensure_no_index(client_interface):
       client_interface.ExecuteQuery('delete_index_query')
     else:
       break
-    time.sleep(1) 
+    time.sleep(1)
 
 
-# Create the index
-def create_index(client_interface, results):
+def create_index(
+    client_interface: edw_service.EdwClientInterface,
+    results: list[sample.Sample],
+) -> None:
+  """Creates an index and records the execution time.
+
+  Args:
+    client_interface: The EDW client interface.
+    results: The list of samples to append to.
+  """
   execution_time, metadata = client_interface.ExecuteQuery('create_index_query')
-  results.append(sample.Sample('search_index_creation_time', execution_time, 'seconds', metadata))
+  results.append(
+      sample.Sample(
+          'search_index_creation_time', execution_time, 'seconds', metadata
+      )
+  )
 
 
-# Check Index Coverage until it reaches 100, record the time of reaching 100.
-# Time out if it takes too long to reach 100
-def measure_building_time(client_interface, results):
+def measure_building_time(
+    client_interface: edw_service.EdwClientInterface,
+    results: list[sample.Sample],
+    timeout: int = 120,
+) -> None:
+  """Measures the time it takes for the index to be fully built(reaching 100% coverage).
+
+  Args:
+    client_interface: The EDW client interface.
+    results: The list of samples to append to.
+    timeout: The maximum time(in seconds) to wait for the index to be fully built.
+  """
   start_time = time.time()
-  timeout = 120
   while True:
     _, metadata = client_interface.ExecuteQuery('check_index_coverage_query')
     time_elapsed = time.time() - start_time
     if metadata and metadata.get('rows_returned', 0) > 0:
-      results.append(sample.Sample('search_index_available_time', time_elapsed, 'seconds', metadata))
+      results.append(
+          sample.Sample(
+              'search_index_available_time', time_elapsed, 'seconds', metadata
+          )
+      )
       break
     if time_elapsed > timeout:
-      logging.error("Timed out waiting for index to fully cover the table.")
+      logging.error('Timed out waiting for index to fully cover the table.')
       # TODO: find a way to stop the benchmark in case of timeout
       break
     else:
-      time.sleep(1) 
+      time.sleep(1)
 
 
-def Run(benchmark_spec):
+def Run(benchmark_spec: bm_spec.BenchmarkSpec) -> list[sample.Sample]:
   """Runs the benchmark and returns a list of samples.
 
   Args:
-    benchmark_spec: The benchmark specification.
+    benchmark_spec: The benchmark specification. Contains all data that is
+    required to run the benchmark.
 
   Returns:
     A list of sample.Sample objects.
   """
-  results = []
+  results: list[sample.Sample] = []
 
   edw_service_instance = benchmark_spec.edw_service
   client_interface = edw_service_instance.GetClientInterface()
@@ -144,13 +182,14 @@ def Run(benchmark_spec):
   return results
 
 
-def Cleanup(benchmark_spec):
+def Cleanup(benchmark_spec: bm_spec.BenchmarkSpec) -> None:
   """Cleans up the benchmark resources.
 
   Args:
     benchmark_spec: The benchmark specification.
   """
   benchmark_spec.edw_service.Cleanup()
+
   edw_service_instance = benchmark_spec.edw_service
   client_interface = edw_service_instance.GetClientInterface()
-  client_interface.ExecuteQuery('delete_index_query')  
+  client_interface.ExecuteQuery('delete_index_query')
