@@ -85,7 +85,7 @@ def Prepare(benchmark_spec: bm_spec.BenchmarkSpec) -> None:
   any(vm.PushDataFile(query_loc) for query_loc in query_locations)
 
 
-def ensure_no_index(
+def _EnsureNoIndex(
     client_interface: edw_service.EdwClientInterface, timeout: int = 30
 ) -> None:
   """Checks if an index already exists and deletes it if it does.
@@ -109,7 +109,7 @@ def ensure_no_index(
     time.sleep(1)
 
 
-def create_index(
+def _CreateIndex(
     client_interface: edw_service.EdwClientInterface,
     results: list[sample.Sample],
 ) -> None:
@@ -127,7 +127,7 @@ def create_index(
   )
 
 
-def measure_building_time(
+def _MeasureBuildingTime(
     client_interface: edw_service.EdwClientInterface,
     results: list[sample.Sample],
     timeout: int = 120,
@@ -173,11 +173,11 @@ def Run(benchmark_spec: bm_spec.BenchmarkSpec) -> list[sample.Sample]:
   edw_service_instance = benchmark_spec.edw_service
   client_interface = edw_service_instance.GetClientInterface()
 
-  ensure_no_index(client_interface)
+  _EnsureNoIndex(client_interface)
 
-  create_index(client_interface, results)
+  _CreateIndex(client_interface, results)
 
-  measure_building_time(client_interface, results)
+  _MeasureBuildingTime(client_interface, results)
 
   return results
 
