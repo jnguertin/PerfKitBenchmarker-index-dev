@@ -16,7 +16,12 @@
 TODO: Set up SF tables and queries and test if they work.
 """
 
-"""Benchmark for creating an index in an EDW service."""
+"""Benchmark for creating a search index in an EDW service.
+
+The benchmark first issues a command to create the search index on an existing table in an
+EDW service(BigQuery or Snowflake), then measures the time it takes for the index to fully cover the table.
+ 
+"""
 
 import os
 import time
